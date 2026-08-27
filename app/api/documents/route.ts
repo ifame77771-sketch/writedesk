@@ -1,0 +1,3 @@
+import {NextResponse} from 'next/server'; import {db} from '@/lib/db'; import {getSessionUserId} from '@/lib/auth';
+export async function GET(){const uid=await getSessionUserId(); if(!uid)return NextResponse.json({error:'Unauthorized'},{status:401}); return NextResponse.json({documents:await db.document.findMany({where:{ownerId:uid},orderBy:{updatedAt:'desc'},select:{id:true,title:true,createdAt:true,updatedAt:true}})})}
+export async function POST(req:Request){const uid=await getSessionUserId(); if(!uid)return NextResponse.json({error:'Unauthorized'},{status:401}); const b=await req.json(); const d=await db.document.create({data:{ownerId:uid,title:(b.title||'Untitled document').slice(0,200),content:b.content||''}}); return NextResponse.json({document:d},{status:201})}

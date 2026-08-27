@@ -1,0 +1,4 @@
+export const dynamic = 'force-dynamic'
+import {NextResponse} from 'next/server'; import bcrypt from 'bcryptjs'; import {z} from 'zod'; import {db} from '@/lib/db'; import {setSession} from '@/lib/auth';
+const schema=z.object({email:z.string().email(),password:z.string().min(1)});
+export async function POST(req:Request){const p=schema.safeParse(await req.json()); if(!p.success)return NextResponse.json({error:'Invalid credentials'},{status:400}); const u=await db.user.findUnique({where:{email:p.data.email.toLowerCase()}}); if(!u||!(await bcrypt.compare(p.data.password,u.passwordHash)))return NextResponse.json({error:'Incorrect email or password'},{status:401}); await setSession(u.id); return NextResponse.json({user:{id:u.id,name:u.name,email:u.email}})}

@@ -1,0 +1,1 @@
+postgresql://neondb_owner:npg_ofsgNPYFB23w@ep-lingering-water-avzk52of.c-11.us-east-1.aws.neon.tech/neondb?channel_binding=require&connect_timeout=15&sslmode=require

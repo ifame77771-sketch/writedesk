@@ -1,0 +1,2 @@
+import {NextResponse} from 'next/server'; import {db} from '@/lib/db';
+export async function GET(_:Request,{params}:{params:Promise<{token:string}>}){const {token}=await params; const s=await db.share.findUnique({where:{token},include:{document:{select:{title:true,content:true}}}}); if(!s||s.expiresAt&&s.expiresAt<new Date())return NextResponse.json({error:'Share link expired or invalid'},{status:404}); return NextResponse.json({document:s.document})}

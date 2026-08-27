@@ -1,0 +1,3 @@
+export const dynamic = 'force-dynamic'
+import Link from 'next/link';
+export default function Home(){return <main className="landing"><section className="hero"><div className="brand">Write<span>Desk</span></div><h1>Write documents beautifully.</h1><p>A professional, Word-inspired online editor for letters, reports, applications, school work and business documents.</p><div className="hero-actions"><Link className="primary" href="/register">Create free account</Link><Link className="secondary" href="/login">Sign in</Link></div><div className="feature-grid"><span>✓ Autosave</span><span>✓ DOCX-ready workflow</span><span>✓ PDF printing</span><span>✓ Tables & images</span></div></section></main>}

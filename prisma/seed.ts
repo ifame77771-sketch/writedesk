@@ -1,0 +1,3 @@
+import { PrismaClient } from '@prisma/client'; import bcrypt from 'bcryptjs';
+const db=new PrismaClient();
+async function main(){const passwordHash=await bcrypt.hash('ChangeMe123!',12); const u=await db.user.upsert({where:{email:'demo@writedesk.local'},update:{},create:{email:'demo@writedesk.local',name:'Demo User',passwordHash}}); await db.document.upsert({where:{id:'demo-document'},update:{},create:{id:'demo-document',ownerId:u.id,title:'Welcome to WriteDesk',content:'<h1>Welcome to WriteDesk</h1><p>Your professional online document editor is ready.</p>'}})} main().finally(()=>db.$disconnect());
