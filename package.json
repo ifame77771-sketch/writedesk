@@ -1,8 +1,49 @@
 {
-  "name":"writedesk",
-  "version":"2.0.0",
-  "private":true,
-  "scripts":{"dev":"next dev","build":"prisma generate && next build","start":"next start","lint":"next lint","db:push":"prisma db push","db:seed":"tsx prisma/seed.ts"},
-  "dependencies":{"@tiptap/extension-color":"^2.11.5","@tiptap/extension-font-family":"^2.11.5","@tiptap/extension-image":"^2.11.5","@tiptap/extension-link":"^2.11.5","@tiptap/extension-placeholder":"^2.11.5","@tiptap/extension-table":"^2.11.5","@tiptap/extension-table-cell":"^2.11.5","@tiptap/extension-table-header":"^2.11.5","@tiptap/extension-table-row":"^2.11.5","@tiptap/extension-text-align":"^2.11.5","@tiptap/extension-text-style":"^2.11.5","@tiptap/extension-underline":"^2.11.5","@tiptap/react":"^2.11.5","@tiptap/starter-kit":"^2.11.5","@prisma/client":"^6.15.0","bcryptjs":"^3.0.2","jose":"^6.0.11","lucide-react":"^0.468.0","next":"^15.1.6","react":"^19.0.0","react-dom":"^19.0.0","zod":"^4.0.17","docx":"^9.5.1"},
-  "devDependencies":{"@types/node":"^22.10.5","@types/react":"^19.0.3","@types/react-dom":"^19.0.2","prisma":"^6.15.0","tsx":"^4.20.3","typescript":"^5.7.2"}
+  "name": "writedesk",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "prisma generate && next build",
+    "start": "next start",
+    "lint": "next lint",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.15.0",
+    "@tiptap/extension-color": "^2.11.5",
+    "@tiptap/extension-font-family": "^2.11.5",
+    "@tiptap/extension-image": "^2.11.5",
+    "@tiptap/extension-link": "^2.11.5",
+    "@tiptap/extension-placeholder": "^2.11.5",
+    "@tiptap/extension-table": "^2.11.5",
+    "@tiptap/extension-table-cell": "^2.11.5",
+    "@tiptap/extension-table-header": "^2.11.5",
+    "@tiptap/extension-table-row": "^2.11.5",
+    "@tiptap/extension-text-align": "^2.11.5",
+    "@tiptap/extension-text-style": "^2.11.5",
+    "@tiptap/extension-underline": "^2.11.5",
+    "@tiptap/react": "^2.11.5",
+    "@tiptap/starter-kit": "^2.11.5",
+    "bcryptjs": "^3.0.2",
+    "docx": "^9.5.1",
+    "jose": "^6.0.11",
+    "jspdf": "^4.2.1",
+    "lucide-react": "^0.468.0",
+    "mammoth": "^1.12.2",
+    "next": "^15.1.6",
+    "pdfjs-dist": "^6.2.108",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^4.0.17"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@types/react": "^19.0.3",
+    "@types/react-dom": "^19.0.2",
+    "prisma": "^6.15.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.7.2"
+  }
 }

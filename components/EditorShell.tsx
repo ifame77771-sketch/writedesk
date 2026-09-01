@@ -1,10 +1,69 @@
-'use client';
-import {useEffect,useMemo,useState} from 'react'; import {EditorContent,useEditor} from '@tiptap/react'; import StarterKit from '@tiptap/starter-kit'; import Underline from '@tiptap/extension-underline'; import TextAlign from '@tiptap/extension-text-align'; import TextStyle from '@tiptap/extension-text-style'; import Color from '@tiptap/extension-color'; import FontFamily from '@tiptap/extension-font-family'; import Link from '@tiptap/extension-link'; import Image from '@tiptap/extension-image'; import Placeholder from '@tiptap/extension-placeholder'; import Table from '@tiptap/extension-table'; import TableRow from '@tiptap/extension-table-row'; import TableCell from '@tiptap/extension-table-cell'; import TableHeader from '@tiptap/extension-table-header'; import {Bold,Italic,Underline as UI,AlignLeft,AlignCenter,AlignRight,List,ListOrdered,Undo2,Redo2,Link as LinkIcon,ImagePlus,Table2,Printer,Download,Save,Minus,Plus,Search,FileText,Share2,ArrowLeft} from 'lucide-react'; import {useRouter} from 'next/navigation';
-function Btn({title,onClick,active,children}:{title:string;onClick:()=>void;active?:boolean;children:React.ReactNode}){return <button title={title} className={active?'tool active':'tool'} onMouseDown={e=>e.preventDefault()} onClick={onClick}>{children}</button>}
-export default function EditorShell({documentId}:{documentId:string}){const r=useRouter();const [name,setName]=useState('Untitled document');const [saved,setSaved]=useState('Loading…');const [zoom,setZoom]=useState(100);const [findOpen,setFindOpen]=useState(false);const [query,setQuery]=useState('');const [loaded,setLoaded]=useState(false);const [shareUrl,setShareUrl]=useState('');
-const editor=useEditor({extensions:[StarterKit,Underline,TextStyle,Color,FontFamily,TextAlign.configure({types:['heading','paragraph']}),Link.configure({openOnClick:false}),Image,Placeholder.configure({placeholder:'Start writing...'}),Table.configure({resizable:true}),TableRow,TableHeader,TableCell],content:'',onUpdate:()=>{if(loaded)setSaved('Unsaved changes')}});
-useEffect(()=>{if(!editor)return; fetch('/api/documents/'+documentId).then(async res=>{if(res.status===401)return r.replace('/login');const d=await res.json();if(!res.ok){alert(d.error);return r.replace('/dashboard')}setName(d.document.title);editor.commands.setContent(d.document.content||'<p></p>');setLoaded(true);setSaved('Saved')})},[editor,documentId,r]);
-const save=async()=>{if(!editor)return;setSaved('Saving…');const res=await fetch('/api/documents/'+documentId,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:name,content:editor.getHTML()})});setSaved(res.ok?'Saved':'Save failed')};
-useEffect(()=>{if(!loaded)return;const t=setTimeout(save,900);return()=>clearTimeout(t)},[name,editor?.getHTML(),loaded]);
-useEffect(()=>{const fn=()=>save();window.addEventListener('beforeunload',fn);return()=>window.removeEventListener('beforeunload',fn)},[editor,name]);
-if(!editor)return null; const text=editor.getText().trim(); const words=text?text.split(/\s+/).length:0; const download=async()=>{const res=await fetch('/api/documents/'+documentId+'/export');if(!res.ok)return alert('Could not export document');const blob=await res.blob();const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${name||'document'}.docx`;a.click();URL.revokeObjectURL(a.href)};const addImage=()=>{const url=prompt('Image URL');if(url)editor.chain().focus().setImage({src:url}).run()};const addLink=()=>{const url=prompt('URL');if(url)editor.chain().focus().setLink({href:url}).run()};const share=async()=>{const d=await fetch('/api/documents/'+documentId+'/share',{method:'POST'}).then(x=>x.json());if(d.url){setShareUrl(d.url);await navigator.clipboard?.writeText(d.url);alert('Share link copied to clipboard.')}};return <div className="app"><header className="top"><button className="iconbtn" onClick={()=>r.push('/dashboard')} title="Back"><ArrowLeft size={18}/></button><div className="brand small">Write<span>Desk</span></div><div className="file-name"><FileText size={16}/><input value={name} onChange={e=>setName(e.target.value)} onBlur={save}/></div><div className="top-actions"><span className="saved">{saved}</span><button className="iconbtn" onClick={save}><Save size={18}/></button><button className="iconbtn" onClick={share} title="Share"><Share2 size={18}/></button><button className="iconbtn" onClick={download} title="Download Word"><Download size={18}/></button><button className="iconbtn" onClick={()=>print()}><Printer size={18}/></button></div></header><div className="menubar"><button>File</button><button>Edit</button><button>View</button><button>Insert</button><button>Format</button><button>Help</button><div className="spacer"/><button onClick={()=>setFindOpen(!findOpen)}><Search size={15}/> Find</button></div><div className="toolbar"><Btn title="Undo" onClick={()=>editor.chain().focus().undo().run()}><Undo2 size={17}/></Btn><Btn title="Redo" onClick={()=>editor.chain().focus().redo().run()}><Redo2 size={17}/></Btn><div className="divider"/><select onChange={e=>editor.chain().focus().setFontFamily(e.target.value).run()} defaultValue="Arial"><option>Arial</option><option>Georgia</option><option>Times New Roman</option><option>Verdana</option></select><select onChange={e=>editor.chain().focus().setMark('textStyle',{fontSize:e.target.value}).run()} defaultValue="16px"><option value="12px">12</option><option value="14px">14</option><option value="16px">16</option><option value="18px">18</option><option value="24px">24</option><option value="32px">32</option></select><div className="divider"/><Btn title="Bold" active={editor.isActive('bold')} onClick={()=>editor.chain().focus().toggleBold().run()}><Bold size={17}/></Btn><Btn title="Italic" active={editor.isActive('italic')} onClick={()=>editor.chain().focus().toggleItalic().run()}><Italic size={17}/></Btn><Btn title="Underline" active={editor.isActive('underline')} onClick={()=>editor.chain().focus().toggleUnderline().run()}><UI size={17}/></Btn><input className="color" type="color" onChange={e=>editor.chain().focus().setColor(e.target.value).run()}/><div className="divider"/><Btn title="Left" onClick={()=>editor.chain().focus().setTextAlign('left').run()}><AlignLeft size={17}/></Btn><Btn title="Center" onClick={()=>editor.chain().focus().setTextAlign('center').run()}><AlignCenter size={17}/></Btn><Btn title="Right" onClick={()=>editor.chain().focus().setTextAlign('right').run()}><AlignRight size={17}/></Btn><Btn title="Bullets" onClick={()=>editor.chain().focus().toggleBulletList().run()}><List size={17}/></Btn><Btn title="Numbering" onClick={()=>editor.chain().focus().toggleOrderedList().run()}><ListOrdered size={17}/></Btn><div className="divider"/><Btn title="Link" onClick={addLink}><LinkIcon size={17}/></Btn><Btn title="Image" onClick={addImage}><ImagePlus size={17}/></Btn><Btn title="Table" onClick={()=>editor.chain().focus().insertTable({rows:3,cols:3,withHeaderRow:true}).run()}><Table2 size={17}/></Btn></div>{findOpen&&<div className="findbar"><Search size={16}/><input autoFocus placeholder="Find in document" value={query} onChange={e=>setQuery(e.target.value)}/><span>{query?editor.getText().toLowerCase().split(query.toLowerCase()).length-1:0} matches</span></div>}<main className="workspace"><div className="page-wrap"><div className="page" style={{zoom:`${zoom}%`}}><EditorContent editor={editor}/></div></div></main><footer className="status"><span>Page 1</span><span>{words} words</span><div className="spacer"/><button onClick={()=>setZoom(Math.max(60,zoom-10))}><Minus size={14}/></button><span>{zoom}%</span><button onClick={()=>setZoom(Math.min(160,zoom+10))}><Plus size={14}/></button></footer></div>}
+"use client";
+import { useRef, useEffect, useState } from "react";
+
+export default function EditorShell() {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fileName, setFileName] = useState("My Document");
+  const [prevContent, setPrevContent] = useState("");
+  const [fontSize, setFontSize] = useState("16");
+  const [selectedWord, setSelectedWord] = useState("");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [popupPos, setPopupPos] = useState({x:0, y:0});
+  const [showPopup, setShowPopup] = useState(false);
+  const [contextMenu, setContextMenu] = useState({show: false, x:0, y:0, word:""});
+  const [isDark, setIsDark] = useState(false);
+  const [pageNum, setPageNum] = useState(1);
+  const [wordCount, setWordCount] = useState(0);
+  const [totalVisits, setTotalVisits] = useState(0);
+  const [todayVisits, setTodayVisits] = useState(0);
+
+  const dictionary: any = { "EMNENT": "EMINENT", "EMPLOYMENT": "EMPLOYMENT" };
+  const allFonts = ["Calibri","Arial","Helvetica","Times New Roman"];
+  const allSizes = ["8","9","10","11","12","14","16","18"];
+
+  useEffect(() => {
+    const w = localStorage.getItem("fullWord");
+    if (w && editorRef.current) {
+      editorRef.current.innerText = w;
+    }
+    // Safe local-only visit counter - no external API
+    const count = parseInt(localStorage.getItem("total_visits") || "0");
+    const newCount = count + 1;
+    localStorage.setItem("total_visits", String(newCount));
+    setTotalVisits(newCount);
+    const today = new Date().toDateString();
+    const lastDate = localStorage.getItem("last_visit_date");
+    let tCount = parseInt(localStorage.getItem("today_visits") || "0");
+    if (lastDate !== today) {
+      tCount = 1;
+    } else {
+      tCount = tCount + 1;
+    }
+    localStorage.setItem("today_visits", String(tCount));
+    localStorage.setItem("last_visit_date", today);
+    setTodayVisits(tCount);
+  }, []);
+
+  const cmd = (c: string, v: any = null) => document.execCommand(c, false, v);
+  const applyFont = (name: string) => { cmd("fontName", name); };
+  const applyFontSize = (size: string) => { setFontSize(size); cmd("fontSize", "3"); };
+  const toggleDark = () => { const nd = !isDark; setIsDark(nd); };
+  const save = () => { localStorage.setItem("fullWord", editorRef.current?.innerText || ""); };
+  const openPreview = () => { if (editorRef.current) window.open("", "_blank")?.document.write(editorRef.current.innerHTML); };
+  const doPrint = () => { if (editorRef.current) window.print(); };
+  const DOWNLOAD = () => { if (editorRef.current) { const blob = new Blob([editorRef.current.innerText], {type:"text/plain"}); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = fileName+".txt"; a.click(); }};
+  const SHARE = () => setShowPopup(true);
+
+  return (
+    <div style={{padding:"20px"}}>
+      <div style={{marginBottom:"10px"}}>Total Visits: {totalVisits} | Today: {todayVisits}</div>
+      <div ref={editorRef} contentEditable style={{minHeight:"400px", border:"1px solid #ccc", padding:"10px", background:isDark?"#333":"white", color:isDark?"white":"black"}} />
+      <div style={{marginTop:"10px"}}>
+        <button onClick={save}>Save</button>
+        <button onClick={doPrint}>Print</button>
+        <button onClick={DOWNLOAD}>Download</button>
+      </div>
+    </div>
+  );
+}
