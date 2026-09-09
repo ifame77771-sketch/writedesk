@@ -1,0 +1,16 @@
+﻿{
+  "name": "WriteDesk PRO",
+  "short_name": "WriteDesk",
+  "description": "Professional Writing by Famiyeh Godswill - Ghana",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1e40af",
+  "theme_color": "#1e40af",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ]
+}
