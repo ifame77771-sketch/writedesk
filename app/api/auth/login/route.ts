@@ -21,6 +21,9 @@ export async function POST(req: Request) {
     if (!user) {
       return NextResponse.json({ error: 'Incorrect email or password' }, { status: 400 })
     }
+    if (!user.password) {
+      return NextResponse.json({ error: 'Incorrect email or password' }, { status: 400 })
+    }
     const isValid = await bcrypt.compare(password, user.password)
     if (!isValid) {
       return NextResponse.json({ error: 'Incorrect email or password' }, { status: 400 })
@@ -28,6 +31,6 @@ export async function POST(req: Request) {
     await setSession(user.id)
     return NextResponse.json({ success: true })
   } catch (error) {
-    return NextResponse.json({ error: 'Login failed.' }, { status: 500 })
+    return NextResponse.json({ error: 'Login failed' }, { status: 500 })
   }
 }
