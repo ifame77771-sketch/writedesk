@@ -17,7 +17,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Incorrect email or password' }, { status: 400 })
     }
     const { email, password } = parsed.data
-    const user = await db.user.findUnique({ where: { email: email.toLowerCase() } })
+    const user = await db.user.findUnique({ where: { email: email.toLowerCase() } }) as any
     if (!user) {
       return NextResponse.json({ error: 'Incorrect email or password' }, { status: 400 })
     }
