@@ -111,13 +111,33 @@ export default function WriteDeskPro() {
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 const router = useRouter();
+const [isChecking, setIsChecking] = useState(true);
+
 useEffect(() => {
-  fetch("/api/auth/me", { credentials: "include" })
-   .then(res => {
-      if (!res.ok) router.push("/login");
-    })
-   .catch(() => router.push("/login"));
+  async function check() {
+    try {
+      const res = await fetch("/api/auth/me", { credentials: "include" });
+      const data = await res.json().catch(() => null);
+      // If no user, redirect
+      if (!res.ok ||!data ||!data.user) {
+        router.push("/login");
+      } else {
+        setIsChecking(false);
+      }
+    } catch {
+      router.push("/login");
+    }
+  }
+  check();
 }, [router]);
+
+if (isChecking) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-[#fefcef]">
+      <p className="font-bold animate-pulse">Checking login...</p>
+    </div>
+  );
+}
   useEffect(() => {
     const saved = localStorage.getItem("writedesk-pro-v3");
     if (editorRef.current) editorRef.current.innerHTML = saved || "Start typing here...<br><br>Try:<br>- 2+2<br>- 15*3<br>- Solve 2x + 3 = 7<br>- What is 25% of 200<br>- Explain Graphic Design";
