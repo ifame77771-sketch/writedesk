@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-
+   import { useRouter } from "next/navigation"
 const FONTS = ["Arial","Arial Black","Calibri","Cambria","Candara","Century Gothic","Comic Sans MS","Consolas","Constantia","Corbel","Courier New","Franklin Gothic","Gabriola","Garamond","Georgia","Impact","Lucida Console","Lucida Sans","MS Gothic","MV Boli","Microsoft Sans Serif","Palatino","Segoe UI","Segoe Print","Segoe Script","Tahoma","Times New Roman","Trebuchet MS","Verdana","Agency FB","Algerian","Baskerville Old Face","Bauhaus 93","Bell MT","Berlin Sans FB","Bernard MT","Bodoni MT","Book Antiqua","Bookman Old Style","Bradley Hand","Britannic Bold","Broadway","Brush Script MT","Californian FB","Calisto MT","Castellar","Centaur","Century","Colonna MT","Cooper Black"];
 const SUBJECTS = ["Auto","Mathematics","Science","English","Physics","Chemistry","Biology","History","Geography","Economics","Literature","ICT","Business","Graphic Design","CV Writing","Cover Letter","Appointment Letter","Song","Story"];
 
@@ -110,7 +110,14 @@ export default function WriteDeskPro() {
   const [fontSize, setFontSize] = useState("12");
   const editorRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
+const router = useRouter();
+useEffect(() => {
+  fetch("/api/auth/me", { credentials: "include" })
+   .then(res => {
+      if (!res.ok) router.push("/login");
+    })
+   .catch(() => router.push("/login"));
+}, [router]);
   useEffect(() => {
     const saved = localStorage.getItem("writedesk-pro-v3");
     if (editorRef.current) editorRef.current.innerHTML = saved || "Start typing here...<br><br>Try:<br>- 2+2<br>- 15*3<br>- Solve 2x + 3 = 7<br>- What is 25% of 200<br>- Explain Graphic Design";
