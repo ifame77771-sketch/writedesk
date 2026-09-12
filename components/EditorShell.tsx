@@ -1,32 +1,35 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
-export default function EditorShell({ documentId }: { documentId?: string }) {
+export default function EditorShell() {
   const [content, setContent] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    async function load() {
-      try {
-        if (!documentId) return;
-        const res = await fetch(`/api/documents/${documentId}`);
-        const data = await res.json();
-        setContent(data.content || "");
-      } catch (e) {}
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = textareaRef.current.scrollHeight + "px";
     }
-    load();
-  }, [documentId]);
+  }, [content]);
 
   return (
-    <div className="min-h-screen bg-[#f5f5f0] flex justify-center p-8">
-      <div className="bg-white w-[210mm] min-h-[297mm] shadow-xl p-[20mm] rounded-sm">
-        {documentId && <h1 className="text-xl font-bold mb-4">{documentId}</h1>}
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          className="w-full h-[80vh] border p-4 rounded focus:outline-none"
-          placeholder="Start writing..."
-        />
+    <div className="min-h-screen bg-[#e8e8e8] flex flex-col items-center py-6">
+      <div className="mb-4 text-sm text-gray-600">Page 1 - A4 • WriteDesk</div>
+
+      <div className="bg-white w-[850px] min-h-[1123px] shadow-[0_4px_20px_rgba(0,0,0,0.2)] rounded-sm">
+        <div className="p-[96px]">
+          <textarea
+            ref={textareaRef}
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Start typing here... Your page will grow as you type..."
+            className="w-full min-h-[900px] resize-none outline-none border-none text-[14pt] leading-[1.8] text-black bg-transparent overflow-hidden"
+            style={{ fontFamily: '"Times New Roman", Times, serif' }}
+          />
+        </div>
       </div>
+
+      <div className="mt-6 text-xs text-gray-400">The page expands automatically as you type</div>
     </div>
   );
 }
