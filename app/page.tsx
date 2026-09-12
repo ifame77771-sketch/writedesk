@@ -1,18 +1,21 @@
 export default function Home() {
   return (
-    <div style={{minHeight:"100vh", background:"#f5f5f7", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"Arial"}}>
-      <div style={{background:"white", width:"420px", padding:"40px", borderRadius:"16px", boxShadow:"0 10px 40px rgba(0,0,0,0.1)"}}>
-        <h1 style={{fontSize:"32px", fontWeight:"bold", marginBottom:"8px"}}>WriteDesk</h1>
-        <p style={{color:"#666", fontSize:"18px", marginBottom:"24px"}}>Write beautifully</p>
-        <p style={{fontSize:"20px", fontWeight:"600", marginBottom:"16px"}}>Welcome back</p>
-        <p style={{color:"#888", marginBottom:"20px"}}>Sign in to your documents</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-white flex items-center justify-center p-6">
+      <div className="bg-white w-full max-w-md p-10 rounded-2xl shadow-xl border border-blue-100">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-blue-600">WriteDesk</h1>
+          <p className="text-blue-400 text-lg mt-2">Write beautifully</p>
+        </div>
         
-        <input placeholder="Email" style={{width:"100%", padding:"14px", fontSize:"16px", border:"1px solid #ddd", borderRadius:"8px", marginBottom:"12px"}} />
-        <input placeholder="Password" type="password" style={{width:"100%", padding:"14px", fontSize:"16px", border:"1px solid #ddd", borderRadius:"8px", marginBottom:"20px"}} />
+        <h2 className="text-2xl font-semibold text-gray-800">Welcome back</h2>
+        <p className="text-gray-500 mt-2 mb-6">Sign in to your documents</p>
         
-        <button style={{width:"100%", padding:"14px", background:"black", color:"white", fontSize:"16px", borderRadius:"8px", border:"none", cursor:"pointer"}}>Sign in</button>
+        <input placeholder="Email" className="w-full px-4 py-3.5 text-base border border-blue-200 rounded-xl mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-blue-50/50" />
+        <input placeholder="Password" type="password" className="w-full px-4 py-3.5 text-base border border-blue-200 rounded-xl mb-6 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-blue-50/50" />
         
-        <p style={{marginTop:"20px", textAlign:"center", color:"#888"}}>New to WriteDesk? Create an account</p>
+        <button className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white text-base font-medium rounded-xl transition">Sign in</button>
+        
+        <p className="mt-6 text-center text-sm text-gray-500">New to WriteDesk? <span className="text-blue-600 font-medium cursor-pointer">Create an account</span></p>
       </div>
     </div>
   )
