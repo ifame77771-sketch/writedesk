@@ -1,43 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
-
 export async function POST(req: NextRequest){
-  try{
-    const {prompt, question, subject} = await req.json()
-    const userPrompt = prompt || question || ""
-    if(!userPrompt) return NextResponse.json({error:"No prompt"}, {status:400})
-
-    const apiKey = process.env.GROQ_API_KEY
-    if(!apiKey) return NextResponse.json({error:"GROQ_API_KEY missing in Vercel Settings"}, {status:500})
-
-    const systemPrompt = subject
-     ? `You are OMNI AI, expert in ${subject} for Ghana SHS/WASSCE. Explain step-by-step clearly.`
-      : `You are QUILL, professional Ghanaian writer. Write perfect A4 formal documents, letters, CVs, dissertations.`
-
-    const groqRes = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method:"POST",
-      headers:{
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          {role:"system", content: systemPrompt},
-          {role:"user", content: userPrompt}
-        ],
-        temperature: 0.7,
-        max_tokens: 3000
-      })
-    })
-
-    const data = await groqRes.json()
-    if(!groqRes.ok){
-      return NextResponse.json({error: JSON.stringify(data)}, {status:500})
-    }
-
-    const text = data.choices?.[0]?.message?.content || "No response from GROQ"
-    return NextResponse.json({text, result:text})
-  }catch(e:any){
-    return NextResponse.json({error: e.message}, {status:500})
-  }
+try{
+const b=await req.json()
+const p=b.prompt||b.question||""
+const k=process.env.GROQ_API_KEY
+if(!k) return NextResponse.json({text:"ERROR: No GROQ_API_KEY in Vercel", result:"ERROR: No GROQ_API_KEY"})
+const r=await fetch("https://api.groq.com/openai/v1/chat/completions",{method:"POST",headers:{"Authorization":"Bearer "+k,"Content-Type":"application/json"},body:JSON.stringify({model:"llama-3.3-70b-versatile",messages:[{role:"system",content:"You are QUILL professional Ghanaian writer for WriteDesk Pro"},{role:"user",content:p}]})})
+const d=await r.json()
+console.log("QUILL GROQ RESPONSE:", JSON.stringify(d).substring(0,500))
+const t=d.choices?.[0]?.message?.content||d.error?.message||JSON.stringify(d)
+return NextResponse.json({text:t,result:t,answer:t})
+}catch(e:any){return NextResponse.json({text:"Server Error: "+e.message, result:"Server Error: "+e.message})}
 }
