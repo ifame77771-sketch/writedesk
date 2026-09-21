@@ -1,144 +1,110 @@
 "use client"
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef } from "react"
 
 export default function Page(){
-  const [mode,setMode]=useState<"quill"|"omni">("quill")
+  const [mode,setMode]=useState<"quill"|"omni"|"info">("quill")
   const [prompt,setPrompt]=useState("")
-  const [subject,setSubject]=useState("English")
-  const [tone,setTone]=useState("Professional")
-  const [loading,setLoading]=useState(false)
-  const [showAbout,setShowAbout]=useState(false)
-  const [fontFamily,setFontFamily]=useState("Arial")
-  const [fontSize,setFontSize]=useState(16)
-  const [wordCount,setWordCount]=useState(0)
-  const editorRef=useRef<HTMLDivElement>(null)
-  const [omniMessages,setOmniMessages]=useState<any[]>([])
   const [omniInput,setOmniInput]=useState("")
+  const [loading,setLoading]=useState(false)
+  const [fontFamily,setFontFamily]=useState("Times New Roman")
+  const [fontSize,setFontSize]=useState(14)
+  const [omniMessages,setOmniMessages]=useState<{user:string, ai:string}[]>([])
+  const editorRef=useRef<HTMLDivElement>(null)
 
-  // EXPANDED TO 50 FONTS - keeps your same dropdown style
-  const fontFamilies=["Arial","Arial Black","Verdana","Helvetica","Tahoma","Trebuchet MS","Times New Roman","Georgia","Garamond","Courier New","Brush Script MT","Palatino","Bookman","Comic Sans MS","Impact","Lucida Sans","Lucida Console","Century Gothic","Franklin Gothic","Calibri","Cambria","Candara","Consolas","Constantia","Corbel","Segoe UI","Optima","Futura","Geneva","Gill Sans","Helvetica Neue","Avant Garde","Baskerville","Big Caslon","Bodoni","Didot","Copperplate","Papyrus","Monaco","Andale Mono","DejaVu Sans","DejaVu Serif","Liberation Sans","Liberation Serif","Noto Sans","Noto Serif","Roboto","Open Sans","Lato","Montserrat","Poppins","Raleway","Ubuntu","Merriweather","Playfair Display","Source Sans Pro","Inter","Nunito"]
-  // EXPANDED TO 8-100
+  const fontFamilies=["Times New Roman","Arial","Arial Black","Verdana","Helvetica","Tahoma","Trebuchet MS","Georgia","Garamond","Courier New","Brush Script MT","Palatino","Comic Sans MS","Impact","Lucida Sans","Century Gothic","Calibri","Cambria","Candara","Consolas","Constantia","Corbel","Segoe UI","Optima","Futura","Geneva","Gill Sans","Baskerville","Bodoni","Didot","Copperplate","Papyrus","Monaco","DejaVu Sans","Noto Sans","Noto Serif","Roboto","Open Sans","Lato","Montserrat","Poppins","Raleway","Ubuntu","Merriweather","Playfair Display","Source Sans Pro","Inter","Nunito","Lora","Oswald","PT Sans","Ubuntu Mono","Libre Baskerville","Arimo","Titillium Web","Mukta","Heebo","Work Sans","Quicksand"]
   const fontSizes=Array.from({length:93},(_,i)=>8+i)
-  const subjects=["English","Mathematics","Science","Social Studies","Business","General","Accounting","Economics","Geography","History","I.T.","Biology","Chemistry","Physics"]
+  const exec=(cmd:string,val?:string)=>{ document.execCommand(cmd,false,val); editorRef.current?.focus() }
 
-  const updateCount=()=>{
-    const txt=editorRef.current?.innerText||""
-    setWordCount(txt.trim()?txt.trim().split(/\s+/).length:0)
-  }
-
-  const exec=(cmd:string,val?:string)=>{
-    document.execCommand(cmd,false,val)
-    editorRef.current?.focus()
-  }
-
-  const handleGenerate=async()=>{
-    if(!prompt.trim()) return
+  const handleQuill=async()=>{
+    if(!prompt.trim()) return alert("Please describe what you want to write!")
     setLoading(true)
     try{
-      const endpoint= mode==="quill"? "/api/generate" : "/api/omni"
-      const body= mode==="quill"
-       ? {prompt, subject, tone, mode:"quill"}
-        : {prompt: `${subject} Expert - OMNI AI: ${prompt}`, subject}
-      const res=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+      const res=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt})})
       const data=await res.json()
-      const text=data.text||data.result||"No response"
-      if(mode==="quill" && editorRef.current){
-        editorRef.current.innerHTML=text.replace(/\n/g,"<br/>")
-        updateCount()
-      } else {
-        setOmniMessages([...omniMessages,{user:prompt, ai:text}])
-        setPrompt("")
-      }
-    }catch(e:any){alert(e.message)} finally{setLoading(false)}
+      if(editorRef.current) editorRef.current.innerHTML=(data.text||"No response").replace(/\n/g,"<br/>")
+    }catch(e:any){alert(e.message)}finally{setLoading(false)}
+  }
+  const handleOmni=async()=>{
+    const q=omniInput||prompt
+    if(!q.trim()) return
+    setLoading(true)
+    try{
+      const res=await fetch("/api/omni",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({prompt:q})})
+      const data=await res.json()
+      setOmniMessages([...omniMessages,{user:q, ai:data.text||"No response"}])
+      setOmniInput(""); setPrompt("")
+    }catch(e:any){alert(e.message)}finally{setLoading(false)}
   }
 
   return (
-    <div className="min-h-screen bg-[#f5f5f5] flex flex-col">
-      <style>{`@media print {.no-print{display:none!important} #editor{box-shadow:none!important; border:none!important}}`}</style>
+    <div className="min-h-screen bg-[#eef2ff] flex flex-col">
+      <style>{`@media print {.no-print{display:none!important}} #editor{font-family:${fontFamily}; font-size:${fontSize}px}`}</style>
 
-      {/* KEEPS YOUR ORIGINAL HEADER STYLE */}
-      <div className="no-print bg-black text-white p-4 flex justify-between items-center">
-        <h1 className="font-bold text-lg">Writedesks.xyz</h1>
-        <div className="flex gap-2">
-          <button onClick={()=>setMode("quill")} className={`px-4 py-1 rounded-full text-sm ${mode==="quill"?"bg-white text-black":"bg-zinc-800"}`}>QUILL</button>
-          <button onClick={()=>setMode("omni")} className={`px-4 py-1 rounded-full text-sm ${mode==="omni"?"bg-white text-black":"bg-zinc-800"}`}>OMNI</button>
-        </div>
-        <div className="flex gap-2">
-          <button onClick={()=>window.print()} className="bg-white text-black px-3 py-1 rounded text-sm">🖨️ Print</button>
-          <button onClick={()=>window.print()} className="bg-blue-600 text-white px-3 py-1 rounded text-sm">Export PDF</button>
+      <div className="no-print bg-[#2e2a6b] text-white px-6 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-2"><span className="font-black">WRITEDESK</span><span className="bg-white text-[#2e2a6b] px-2 py-0.5 rounded text-xs font-bold">PRO</span></div>
+        <div className="flex gap-1 bg-black/30 p-1 rounded-full">
+          <button onClick={()=>setMode("quill")} className={`px-4 py-1.5 rounded-full text-xs font-bold ${mode==="quill"?"bg-white text-[#2e2a6b]":"text-white/70"}`}>QUILL</button>
+          <button onClick={()=>setMode("omni")} className={`px-4 py-1.5 rounded-full text-xs font-bold ${mode==="omni"?"bg-white text-[#2e2a6b]":"text-white/70"}`}>OMNI</button>
+          <button onClick={()=>setMode("info")} className={`px-4 py-1.5 rounded-full text-xs font-bold ${mode==="info"?"bg-white text-[#2e2a6b]":"text-white/70"}`}>ⓘ INFO</button>
         </div>
       </div>
 
-      {/* PROMPT AREA - YOUR STYLE */}
-      <div className="no-print bg-white p-4 shadow-sm flex flex-wrap gap-2 items-center">
-        <select value={subject} onChange={e=>setSubject(e.target.value)} className="border p-2 rounded">
-          {subjects.map(s=><option key={s}>{s}</option>)}
-        </select>
-        {mode==="quill" && (
-          <select value={tone} onChange={e=>setTone(e.target.value)} className="border p-2 rounded">
-            <option>Professional</option><option>Friendly</option><option>Academic</option><option>Formal</option>
-          </select>
-        )}
-        <input value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder={mode==="quill"?"What should QUILL write?":"Ask OMNI anything..."} className="flex-1 min-w-[200px] border p-2 rounded"/>
-        <button onClick={handleGenerate} disabled={loading} className="bg-black text-white px-6 py-2 rounded font-bold">{loading?"Generating...": mode==="quill"?"Generate with QUILL":"Ask OMNI"}</button>
-      </div>
-
-      {mode==="quill"? (
-        <>
-          {/* TOOLBAR - YOUR STYLE + ADDED STRIKETHROUGH */}
-          <div className="no-print bg-white border-y p-2 flex flex-wrap gap-2 items-center">
-            <select value={fontFamily} onChange={e=>{setFontFamily(e.target.value); exec("fontName",e.target.value)}} className="border p-1 rounded text-sm w-[120px]">
-              {fontFamilies.map(f=><option key={f} value={f}>{f}</option>)}
-            </select>
-            <select value={fontSize} onChange={e=>setFontSize(Number(e.target.value))} className="border p-1 rounded text-sm">
-              {fontSizes.map(s=><option key={s} value={s}>{s}</option>)}
-            </select>
+      {mode==="quill" && (
+      <>
+        <div className="no-print bg-white border-b px-4 py-2 flex flex-wrap gap-2 items-center">
+          <select value={fontFamily} onChange={e=>{setFontFamily(e.target.value); exec("fontName",e.target.value)}} className="border rounded px-3 py-1.5 text-sm min-w-[140px]">{fontFamilies.map(f=><option key={f}>{f}</option>)}</select>
+          <select value={fontSize} onChange={e=>setFontSize(Number(e.target.value))} className="border rounded px-2 py-1.5 text-sm">{fontSizes.map(s=><option key={s}>{s}px</option>)}</select>
+          <div className="flex gap-1 ml-2">
             <button onClick={()=>exec("bold")} className="w-8 h-8 border rounded font-bold">B</button>
             <button onClick={()=>exec("italic")} className="w-8 h-8 border rounded italic">I</button>
             <button onClick={()=>exec("underline")} className="w-8 h-8 border rounded underline">U</button>
-            {/* NEW - STRIKETHROUGH */}
             <button onClick={()=>exec("strikeThrough")} className="w-8 h-8 border rounded"><s>S</s></button>
             <button onClick={()=>exec("justifyLeft")} className="w-8 h-8 border rounded">L</button>
             <button onClick={()=>exec("justifyCenter")} className="w-8 h-8 border rounded">C</button>
             <button onClick={()=>exec("justifyRight")} className="w-8 h-8 border rounded">R</button>
-            <button onClick={()=>exec("justifyFull")} className="w-8 h-8 border rounded">J</button>
           </div>
-          <div className="flex-1 flex justify-center p-6">
-            <div id="editor" ref={editorRef} contentEditable suppressContentEditableWarning onInput={updateCount}
-              style={{fontFamily, fontSize:fontSize+"px", background:"white", width:"100%", maxWidth:"850px", minHeight:"700px", padding:"60px", boxShadow:"0 0 15px rgba(0,0,0,0.08)", outline:"none"}}
-            />
+          <div className="flex gap-2 ml-auto">
+            <button onClick={()=>window.print()} className="border px-3 py-1.5 rounded text-sm">🖨️ Print</button>
+            <button onClick={()=>window.print()} className="bg-[#3b5bff] text-white px-4 py-1.5 rounded-full text-sm font-bold">Export PDF (A4)</button>
           </div>
-          <div className="no-print bg-white p-2 text-xs text-gray-500 border-t">{wordCount} words | {Math.ceil(wordCount/200)} min</div>
-        </>
-      ) : (
-        <div className="flex-1 p-4 max-w-3xl mx-auto w-full">
-          {omniMessages.map((m,i)=>(
-            <div key={i} className="mb-4">
-              <div className="bg-black text-white p-3 rounded-lg mb-2">You: {m.user}</div>
-              <div className="bg-white p-3 rounded-lg border whitespace-pre-wrap">{m.ai}</div>
-            </div>
-          ))}
         </div>
+        <div className="flex flex-1">
+          <div className="no-print w-[380px] bg-[#eef2ff] p-6 flex flex-col gap-4">
+            <div><h2 className="font-bold">QUILL - AI Writer</h2><p className="text-xs text-gray-500">Letters, CV, dissertations, A4 ready</p></div>
+            <textarea value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder="Describe what you want QUILL to write... e.g., Write a formal application letter for a teaching position, or a business proposal..." className="w-full h-[200px] border rounded-lg p-4 text-sm"/>
+            <button onClick={handleQuill} disabled={loading} className="bg-[#3b5bff] text-white w-full py-3 rounded-full font-bold">{loading?"Generating...":"✨ Generate with QUILL"}</button>
+          </div>
+          <div className="flex-1 bg-[#f0f3ff] p-8 flex justify-center"><div ref={editorRef} contentEditable suppressContentEditableWarning id="editor" className="bg-white w-[794px] min-h-[1123px] p-[80px] shadow outline-none">Your document will appear here...</div></div>
+        </div>
+      </>
       )}
 
-      {/* NEW - ABOUT SWITCH WITH YOUR NAME */}
-      <button onClick={()=>setShowAbout(!showAbout)} className="no-print fixed bottom-5 right-5 bg-black text-white px-5 py-3 rounded-full shadow-xl z-50 text-sm">
-        {showAbout?"✕":"ⓘ About"}
-      </button>
-      {showAbout && (
-        <div className="fixed inset-0 bg-black/50 z-40 flex items-end justify-end p-6 no-print" onClick={()=>setShowAbout(false)}>
-          <div className="bg-white rounded-2xl p-6 w-[350px]" onClick={e=>e.stopPropagation()}>
-            <h3 className="font-bold text-xl">Writedesks.xyz</h3>
-            <p className="text-xs bg-black text-white inline-block px-2 py-1 rounded mt-1">QUILL + OMNI AI - PRO</p>
-            <p className="text-sm mt-3 text-gray-600">QUILL writes letters, CVs, proposals. OMNI tutors all subjects. Now with 50+ fonts, 8-100px sizes, Strikethrough, Print & Export PDF A4.</p>
-            <div className="mt-4 border-t pt-3">
-              <p className="text-xs text-gray-400">Built by</p>
-              <p className="font-bold text-lg">Famiyeh Godswill</p>
-              <p className="text-xs">Accounting Student, University of Ghana - L200</p>
-              <p className="text-[10px] mt-2 text-gray-400">© 2026 writedesks.xyz</p>
-            </div>
-          </div>
+      {mode==="omni" && (
+      <div className="flex-1 max-w-4xl mx-auto w-full p-6 flex flex-col">
+        <div className="bg-white rounded-xl p-4 border mb-4"><h2 className="font-bold">OMNI - AI Tutor</h2><p className="text-xs text-gray-500">Ask anything to get help - all subjects, all levels</p></div>
+        <div className="flex-1 bg-white rounded-xl border p-4 space-y-3 min-h-[400px] overflow-auto">
+          {omniMessages.length===0 && <p className="text-center text-gray-400 mt-20 text-sm">Ask OMNI anything you need help with...</p>}
+          {omniMessages.map((m,i)=><div key={i}><div className="bg-[#2e2a6b] text-white p-3 rounded-lg text-sm mb-2">You: {m.user}</div><div className="bg-[#eef2ff] p-3 rounded-lg text-sm whitespace-pre-wrap">{m.ai}</div></div>)}
         </div>
+        <div className="mt-4 flex gap-2 no-print"><input value={omniInput} onChange={e=>setOmniInput(e.target.value)} placeholder="Ask OMNI anything you need help with..." className="flex-1 border rounded-full px-4 py-3 text-sm"/><button onClick={handleOmni} className="bg-[#2e2a6b] text-white px-6 py-3 rounded-full text-sm font-bold">{loading?"...":"Ask OMNI"}</button></div>
+      </div>
+      )}
+
+      {mode==="info" && (
+      <div className="flex-1 bg-white p-8 overflow-auto">
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-3xl font-black">WRITEDESK <span className="bg-[#2e2a6b] text-white px-3 py-1 rounded text-lg">PRO</span></h1>
+          <p className="text-[#3b5bff] font-bold mt-1">Built to help everyone who desires assistance with writing and learning</p>
+          <div className="grid grid-cols-2 gap-4 mt-8">
+            <div className="border rounded-xl p-4 bg-[#eef2ff]"><h3 className="font-bold">✒️ QUILL - AI Writer</h3><ul className="text-sm mt-2 list-disc ml-4 text-gray-600"><li>Professional letters & applications</li><li>CV, Cover letters, Dissertations</li><li>Business proposals & reports</li><li>A4 ready, Export PDF, Print</li><li>60+ fonts, 8-100px, formatting tools</li></ul></div>
+            <div className="border rounded-xl p-4 bg-[#fff7ed]"><h3 className="font-bold">🧠 OMNI - AI Tutor</h3><ul className="text-sm mt-2 list-disc ml-4 text-gray-600"><li>All subjects, all levels</li><li>Math, Science, English, Business</li><li>Step-by-step explanations</li><li>24/7 assistance for everyone</li></ul></div>
+          </div>
+          <div className="mt-8 bg-[#2e2a6b] text-white rounded-xl p-6 flex justify-between items-center">
+            <div><p className="text-xs opacity-60">Built by</p><p className="text-xl font-bold">Famiyeh Godswill</p><p className="text-sm opacity-80">Accounting Student</p><p className="text-xs mt-2 opacity-60">www.writedesks.xyz | © 2026 - Created to serve all who desire assistance</p></div>
+          </div>
+          <div className="mt-6 text-center"><button onClick={()=>setMode("quill")} className="bg-[#3b5bff] text-white px-8 py-3 rounded-full font-bold">Start Writing with QUILL →</button></div>
+        </div>
+      </div>
       )}
     </div>
   )
